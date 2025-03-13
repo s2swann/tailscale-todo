@@ -1,0 +1,47 @@
+services:
+  bob:
+    command:
+      - "node"
+      - "src/index.js"
+    container_name: "iful_jemison"
+    entrypoint:
+      - "docker-entrypoint.sh"
+    environment:
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      - "NODE_VERSION=12.22.8"
+      - "YARN_VERSION=1.22.17"
+    image: "sswanncs/getting-started"
+    ipc: "private"
+    logging:
+      driver: "json-file"
+      options: {}
+    mac_address: "02:42:ac:11:00:02"
+    network_mode: service:ts-todo-server
+    depends_on:
+      - ts-todo-server
+    volumes:
+      - "999ee6b3207a43bff80996f99c4b305c1c4a3cb94f1270aabfc39381352411a5:/etc/todos"
+    working_dir: "/app"
+  ts-todo-server:
+    image: tailscale/tailscale:latest
+    ports:
+      # This line makes Actual available at port 5006 of the device you run the server on,
+      # i.e. http://localhost:5006. You can change the first number to change the port, if you want.
+      - '3000:3000'
+    container_name: ts-todo
+    hostname: todo-server
+    environment:
+      - TS_AUTHKEY=tskey-auth-kuXK6<actual auth key ;-) >
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ./ts-todo-server/state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+volumes:
+  999ee6b3207a43bff80996f99c4b305c1c4a3cb94f1270aabfc39381352411a5:
+    external: true
